@@ -48,7 +48,7 @@ class FER2013(data.Dataset):
             # Convert target to a float (assuming it's already a numerical value)
             self.train_labels = torch.tensor(self.train_labels, dtype=torch.float32)
         elif self.split == 'PublicTest':
-            self.data = pd.read_csv("./data/publictest-20240122.csv")
+            self.data = pd.read_csv("./data/publictest-20240507.csv")
             self.PublicTest_data = self.data['pixels']
             self.PublicTest_labels = self.data['Valence']
             self.PublicTest_data = np.asarray(self.PublicTest_data)
@@ -73,7 +73,7 @@ class FER2013(data.Dataset):
             # Convert target to a float (assuming it's already a numerical value)
             self.PublicTest_labels = torch.tensor(self.PublicTest_labels, dtype=torch.float32)
         else:
-            self.data = pd.read_csv("./data/privatetest-20240122.csv")
+            self.data = pd.read_csv("./data/privatetest-20240506-yh.csv")
             self.PrivateTest_data = self.data['pixels']
             self.PrivateTest_labels = self.data['Valence']
 
