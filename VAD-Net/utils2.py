@@ -33,7 +33,7 @@ def conv_orth_dist(kernel, stride = 1):
     for i in range(temp.shape[0]):temp[i,np.floor(new_s**2/2).astype(int)+new_s**2*i]=1
     return torch.norm( Vmat@torch.t(out) - torch.from_numpy(temp).float().cuda() )
     
-def deconv_orth_dist(kernel, stride = 2, padding = 1):
+def deconv_orth_dist(kernel, stride = None, padding = 0):
     o_c, i_c, k_h, k_w = kernel.shape 
     output = torch.conv2d(kernel, kernel, stride=stride, padding=padding)
     target_shape = (o_c, o_c, output.shape[-2], output.shape[-1])
