@@ -23,80 +23,105 @@ class FER2013(data.Dataset):
     def __init__(self, split='Training', transform=None):
         self.transform = transform
         self.split = split  # training set or test set
+
         if self.split == 'Training':
             self.data = pd.read_csv("./data/train-20240123-14902.csv")
-            self.train_data = self.data['pixels']
-            self.train_labels = self.data['Valence']
+            pixels_series = self.data['pixels']
+            valence_series = self.data['Valence']
 
-            # convert train_data to images.
-            self.train_data = np.asarray(self.train_data)
-            self.train_data = [list(map(int, string.split())) for string in self.train_data]
-            # # Convert the list of lists to a list of NumPy arrays
-            self.train_data = [np.array(inner_list) for inner_list in self.train_data]
-            # Convert the list of 1-D arrays to a list of 2-D arrays (2x2)
-            self.train_data = [arr.reshape(48, 48) for arr in self.train_data]
-            # Adding a third dimension to each array
-            self.train_data = [arr[:, :, np.newaxis] for arr in self.train_data]
-            temp = list()
-            for arr in self.train_data:
-                arr = np.concatenate((arr, arr, arr), axis=2).astype('uint8')
-                arr = Image.fromarray(arr)
-                if self.transform is not None:
-                    arr = self.transform(arr)  # transform train_data, for normalization.
-                temp.append(arr)
-            self.train_data = temp
-            # Convert target to a float (assuming it's already a numerical value)
-            self.train_labels = torch.tensor(self.train_labels, dtype=torch.float32)
+            processed_pixel_arrays = []
+            processed_labels = []
+
+            for idx, pixel_entry in enumerate(pixels_series):
+                pixel_str = str(pixel_entry).strip()
+                if pixel_str.lower() == 'nan' or not pixel_str:
+                    continue
+                try:
+                    pixels = list(map(int, pixel_str.split()))
+                    if len(pixels) == 48 * 48:
+                        arr_2d = np.array(pixels, dtype=np.uint8).reshape(48, 48)
+                        arr_3d = np.concatenate((arr_2d[:, :, np.newaxis], arr_2d[:, :, np.newaxis], arr_2d[:, :, np.newaxis]), axis=2)
+
+                        image = Image.fromarray(arr_3d)
+                        if self.transform is not None:
+                            image = self.transform(image)
+
+                        processed_pixel_arrays.append(image)
+                        processed_labels.append(valence_series.iloc[idx])
+                    else:
+                        print(f"Warning: Training pixel string has incorrect length ({len(pixels)}) for 48x48 image at index {idx}. Skipping this entry.")
+                except ValueError:
+                    print(f"Warning: Could not parse training pixel string '{pixel_str}' at index {idx}. Skipping this entry.")
+                    continue
+
+            self.train_data = processed_pixel_arrays
+            self.train_labels = torch.tensor(processed_labels, dtype=torch.float32)
+
         elif self.split == 'PublicTest':
             self.data = pd.read_csv("./data/publictest-20240507.csv")
-            self.PublicTest_data = self.data['pixels']
-            self.PublicTest_labels = self.data['Valence']
-            self.PublicTest_data = np.asarray(self.PublicTest_data)
+            pixels_series = self.data['pixels']
+            valence_series = self.data['Valence']
 
-            # convert PublicTest_data to images.
-            self.PublicTest_data = np.asarray(self.PublicTest_data)
-            self.PublicTest_data = [list(map(int, string.split())) for string in self.PublicTest_data]
-            # # Convert the list of lists to a list of NumPy arrays
-            self.PublicTest_data = [np.array(inner_list) for inner_list in self.PublicTest_data]
-            # Convert the list of 1-D arrays to a list of 2-D arrays (2x2)
-            self.PublicTest_data = [arr.reshape(48, 48) for arr in self.PublicTest_data]
-            # Adding a third dimension to each array
-            self.PublicTest_data = [arr[:, :, np.newaxis] for arr in self.PublicTest_data]
-            temp = list()
-            for arr in self.PublicTest_data:
-                arr = np.concatenate((arr, arr, arr), axis=2).astype('uint8')
-                arr = Image.fromarray(arr)
-                if self.transform is not None:
-                    arr = self.transform(arr)  # transform , for normalization.
-                temp.append(arr)
-            self.PublicTest_data = temp
-            # Convert target to a float (assuming it's already a numerical value)
-            self.PublicTest_labels = torch.tensor(self.PublicTest_labels, dtype=torch.float32)
-        else:
+            processed_pixel_arrays = []
+            processed_labels = []
+
+            for idx, pixel_entry in enumerate(pixels_series):
+                pixel_str = str(pixel_entry).strip()
+                if pixel_str.lower() == 'nan' or not pixel_str:
+                    continue
+                try:
+                    pixels = list(map(int, pixel_str.split()))
+                    if len(pixels) == 48 * 48:
+                        arr_2d = np.array(pixels, dtype=np.uint8).reshape(48, 48)
+                        arr_3d = np.concatenate((arr_2d[:, :, np.newaxis], arr_2d[:, :, np.newaxis], arr_2d[:, :, np.newaxis]), axis=2)
+
+                        image = Image.fromarray(arr_3d)
+                        if self.transform is not None:
+                            image = self.transform(image)
+
+                        processed_pixel_arrays.append(image)
+                        processed_labels.append(valence_series.iloc[idx])
+                    else:
+                        print(f"Warning: PublicTest pixel string has incorrect length ({len(pixels)}) for 48x48 image at index {idx}. Skipping this entry.")
+                except ValueError:
+                    print(f"Warning: Could not parse PublicTest pixel string '{pixel_str}' at index {idx}. Skipping this entry.")
+                    continue
+
+            self.PublicTest_data = processed_pixel_arrays
+            self.PublicTest_labels = torch.tensor(processed_labels, dtype=torch.float32)
+
+        else: # self.split == 'PrivateTest'
             self.data = pd.read_csv("./data/privatetest-20240506-yh.csv")
-            self.PrivateTest_data = self.data['pixels']
-            self.PrivateTest_labels = self.data['Valence']
+            pixels_series = self.data['pixels']
+            valence_series = self.data['Valence']
 
-            # convert PrivateTest_data to images.
-            self.PrivateTest_data = np.asarray(self.PrivateTest_data)
-            self.PrivateTest_data = [list(map(int, string.split())) for string in self.PrivateTest_data]
-            # # Convert the list of lists to a list of NumPy arrays
-            self.PrivateTest_data = [np.array(inner_list) for inner_list in self.PrivateTest_data]
-            # Convert the list of 1-D arrays to a list of 2-D arrays (2x2)
-            self.PrivateTest_data = [arr.reshape(48, 48) for arr in self.PrivateTest_data]
-            # Adding a third dimension to each array
-            self.PrivateTest_data = [arr[:, :, np.newaxis] for arr in self.PrivateTest_data]
-            temp = list()
-            for arr in self.PrivateTest_data:
-                arr = np.concatenate((arr, arr, arr), axis=2).astype('uint8')
-                arr = Image.fromarray(arr)
-                if self.transform is not None:
-                    arr = self.transform(arr)  # transform , for normalization.
-                temp.append(arr)
-            self.PrivateTest_data = temp
+            processed_pixel_arrays = []
+            processed_labels = []
 
-            # Convert target to a float (assuming it's already a numerical value)
-            self.PrivateTest_labels = torch.tensor(self.PrivateTest_labels, dtype=torch.float32)
+            for idx, pixel_entry in enumerate(pixels_series):
+                pixel_str = str(pixel_entry).strip()
+                if pixel_str.lower() == 'nan' or not pixel_str:
+                    continue
+                try:
+                    pixels = list(map(int, pixel_str.split()))
+                    if len(pixels) == 48 * 48:
+                        arr_2d = np.array(pixels, dtype=np.uint8).reshape(48, 48)
+                        arr_3d = np.concatenate((arr_2d[:, :, np.newaxis], arr_2d[:, :, np.newaxis], arr_2d[:, :, np.newaxis]), axis=2)
+
+                        image = Image.fromarray(arr_3d)
+                        if self.transform is not None:
+                            image = self.transform(image)
+
+                        processed_pixel_arrays.append(image)
+                        processed_labels.append(valence_series.iloc[idx])
+                    else:
+                        print(f"Warning: PrivateTest pixel string has incorrect length ({len(pixels)}) for 48x48 image at index {idx}. Skipping this entry.")
+                except ValueError:
+                    print(f"Warning: Could not parse PrivateTest pixel string '{pixel_str}' at index {idx}. Skipping this entry.")
+                    continue
+
+            self.PrivateTest_data = processed_pixel_arrays
+            self.PrivateTest_labels = torch.tensor(processed_labels, dtype=torch.float32)
 
     def __getitem__(self, index):
         """

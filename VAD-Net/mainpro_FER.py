@@ -79,7 +79,7 @@ def train(epoch, trainloader):
             net.layer4[1].conv1.weight, stride=1)
         ########################
         loss = criterion(outputs, targets)
-        print(loss)
+        # print(loss)
         loss = loss + 0.5 * diff
         loss = loss.to(torch.float32)
         loss.backward()
