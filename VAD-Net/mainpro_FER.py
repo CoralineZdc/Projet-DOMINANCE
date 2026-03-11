@@ -67,8 +67,9 @@ def train(epoch, trainloader):
         # to be consistent with 'target' size.
         # add by HY, for orthogonal convolution
         ########################################################################################
-        diff = utils2.orth_dist(net.layer2[0].shortcut[0].weight) + utils2.orth_dist(
-            net.layer3[0].shortcut[0].weight) + utils2.orth_dist(net.layer4[0].shortcut[0].weight)
+        diff = utils2.deconv_orth_dist(net.layer2[0].shortcut[0].weight, stride=2) + \
+               utils2.deconv_orth_dist(net.layer3[0].shortcut[0].weight, stride=2) + \
+               utils2.deconv_orth_dist(net.layer4[0].shortcut[0].weight, stride=2)
         diff += utils2.deconv_orth_dist(net.layer1[0].conv1.weight, stride=1) + utils2.deconv_orth_dist(
             net.layer1[1].conv1.weight, stride=1)
         diff += utils2.deconv_orth_dist(net.layer2[0].conv1.weight, stride=2) + utils2.deconv_orth_dist(
