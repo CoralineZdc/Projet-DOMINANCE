@@ -18,6 +18,8 @@ from torch.nn import functional as F
 from pdb import set_trace as st
 #from dataset import CIFAR100Train, CIFAR100Test
 
+use_cuda = torch.cuda.is_available() # Initialize globally
+
 def conv_orth_dist(kernel, stride = 1):
     [o_c, i_c, w, h] = kernel.shape
     assert (w == h),"Do not support rectangular kernel"
@@ -32,18 +34,28 @@ def conv_orth_dist(kernel, stride = 1):
     return torch.norm( Vmat@torch.t(out) - torch.from_numpy(temp).float().cuda() )
     
 def deconv_orth_dist(kernel, stride = 2, padding = 1):
-    [o_c, i_c, w, h] = kernel.shape
+    o_c, i_c, k_h, k_w = kernel.shape 
     output = torch.conv2d(kernel, kernel, stride=stride, padding=padding)
-    target = torch.zeros((o_c, o_c, output.shape[-2], output.shape[-1])).cuda()
+    target_shape = (o_c, o_c, output.shape[-2], output.shape[-1])
+    target = torch.zeros(target_shape)
+    if use_cuda:
+        target = target.cuda()
     ct = int(np.floor(output.shape[-1]/2))
-    target[:,:,ct,ct] = torch.eye(o_c).cuda()
-    return torch.norm( output - target )
-    
+    identity = torch.eye(o_c)
+    if use_cuda: 
+        identity = identity.cuda()
+    target[:,:,ct,ct] = identity
+    return torch.norm(output - target)
+      
 def orth_dist(mat, stride=None):
-    mat = mat.reshape( (mat.shape[0], -1) )
+    if mat.dim() > 2:
+        raise RuntimeError("orth_dist received a tensor with more than 2 dimensions. Use deconv_orth_dist for convolutional weights.")
     if mat.shape[0] < mat.shape[1]:
         mat = mat.permute(1,0)
-    return torch.norm( torch.t(mat)@mat - torch.eye(mat.shape[1]).cuda())
+    identity_matrix = torch.eye(mat.shape[1])
+    if use_cuda: # Conditionally move to CUDA
+        identity_matrix = identity_matrix.cuda()
+    return torch.norm( torch.t(mat)@mat - identity_matrix)
 
 def trace_batch(cov):
     return torch.mean(torch.sum(torch.diagonal(cov, dim1=1, dim2=2), dim=1))
