@@ -98,8 +98,8 @@ def PublicTest(epoch, PublicTestloader):
         PublicTest_loss += loss.data
         total_Pubsamples += targets.size(0)
 
-        #utils.progress_bar(batch_idx, len(PublicTestloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                           % (PublicTest_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+    #    utils.progress_bar(batch_idx, len(PublicTestloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+    #                       % (PublicTest_loss / (batch_idx + 1), 100. * correct / total, correct, total))
     
     PublicTest_av_loss = PublicTest_loss / total_Pubsamples
     PublicTest_av_loss = PublicTest_av_loss.item()
@@ -117,7 +117,7 @@ def PublicTest(epoch, PublicTestloader):
         }
         if not os.path.isdir(path):
             os.mkdir(path)
-        torch.save(state, os.path.join(path, 'PublicTest_model.t7'))
+        torch.save(state, os.path.join(path, 'PublicTest_model.pth'))
         best_PublicTest_Averageloss = PublicTest_av_loss
         best_PublicTest_Averageloss_epoch = epoch
 
@@ -148,8 +148,8 @@ def PrivateTest(epoch, PrivateTestloader):
         PrivateTest_loss += loss.data
         total_PriSamples += targets.size(0)
         
-        utils.progress_bar(batch_idx, len(PublicTestloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                                   % (PrivateTest_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+        # utils.progress_bar(batch_idx, len(PublicTestloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+        #                           % (PrivateTest_loss / (batch_idx + 1), 100. * correct / total, correct, total))
         
     PrivateTest_av_loss = PrivateTest_loss / total_PriSamples
     PrivateTest_av_loss = PrivateTest_av_loss.item()
@@ -169,7 +169,7 @@ def PrivateTest(epoch, PrivateTestloader):
         }
         if not os.path.isdir(path):
             os.mkdir(path)
-        torch.save(state, os.path.join(path, 'PrivateTest_model.t7'))
+        torch.save(state, os.path.join(path, 'PrivateTest_model.pth'))
 
 
 if __name__ == '__main__':
@@ -237,7 +237,7 @@ if __name__ == '__main__':
         start_epoch = checkpoint['best_PrivateTest_Averageloss_epoch'] + 1
     else:
         
-    print('==> Building model..')
+        print('==> Building model..')
     
     if use_cuda:
         net.cuda()
@@ -277,3 +277,6 @@ if __name__ == '__main__':
     csv_file_path = 'AveLossProcess.csv'
     # Save the DataFrame to a CSV file
     df.to_csv(csv_file_path, index=False)
+
+    # Save model weights
+

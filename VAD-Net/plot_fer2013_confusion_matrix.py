@@ -73,9 +73,7 @@ def plot_confusion_matrix(cm, classes,
 class_names = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
 
 # Model
-if opt.model == 'VGG19':
-    net = VGG('VGG19')
-elif opt.model  == 'Resnet18':
+if opt.model  == 'Resnet18':
     net = ResNet18()
 
 path = os.path.join(opt.dataset + '_' + opt.model)
