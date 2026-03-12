@@ -3,12 +3,7 @@
 from __future__ import print_function
 
 
-# import torch
-# import torch.nn as nn
 import torch.optim as optim
-# import torch.nn.functional as F
-# import torch.backends.cudnn as cudnn
-# import torchvision
 import transforms as transforms
 import numpy as np
 import os
@@ -16,30 +11,19 @@ import argparse
 import utils
 import utils2
 from fer import FER2013
-# from CK import CK
-# from torch.autograd import Variable
 from models import *
-# add by HY
 
 from models.resnet_reg2 import ResNet18RegressionTwoOutputs
 import pandas as pd
 import torch.utils.data
-print("run from begin1")
-print("run from begin2")
-
-
-# add by HY
 
 def custom_transform(crops):
     return torch.stack([transforms.ToTensor()(crop) for crop in crops])
 
-print("run from begin3")
-# Training
 def train(epoch, trainloader):
     print('\nEpoch: %d' % epoch)
     global list_Train_AveLoss
-    # global trainset
-    # global trainloader
+
     net.train()
     total_loss = 0.0
     total_samples = 0
@@ -53,8 +37,6 @@ def train(epoch, trainloader):
         current_lr = opt.lr
     print('learning_rate: %s' % str(current_lr))
 
-    ###########################
-    # for batch_idx, (inputs, targets) in enumerate(trainloader):  ###########问题在这里，每次都要加载数据。？？?，先用小数据集测试。
     for batch in trainloader:
         inputs, targets = batch
         if use_cuda:
@@ -63,10 +45,6 @@ def train(epoch, trainloader):
         inputs, targets = Variable(inputs), Variable(targets)
         outputs = net(inputs)
         outputs = outputs.squeeze(dim=1)  # remove the dimension with size 1, resulting in a tensor of size [16].
-        ##########
-        # to be consistent with 'target' size.
-        # add by HY, for orthogonal convolution
-        ########################################################################################
         diff = utils2.deconv_orth_dist(net.layer2[0].shortcut[0].weight, stride=2) + \
                utils2.deconv_orth_dist(net.layer3[0].shortcut[0].weight, stride=2) + \
                utils2.deconv_orth_dist(net.layer4[0].shortcut[0].weight, stride=2)
@@ -78,9 +56,7 @@ def train(epoch, trainloader):
             net.layer3[1].conv1.weight, stride=1)
         diff += utils2.deconv_orth_dist(net.layer4[0].conv1.weight, stride=2) + utils2.deconv_orth_dist(
             net.layer4[1].conv1.weight, stride=1)
-        ########################
         loss = criterion(outputs, targets)
-        # print(loss)
         loss = loss + 0.5 * diff
         loss = loss.to(torch.float32)
         loss.backward()
@@ -107,7 +83,6 @@ def PublicTest(epoch, PublicTestloader):
     PublicTest_loss = 0
     total_Pubsamples = 0
 
-    # for batch_idx, (inputs, targets) in enumerate(PublicTestloader):
     for batch in PublicTestloader:
         inputs, targets = batch
         bs, ncrops, c, h, w = np.shape(inputs)
@@ -115,20 +90,17 @@ def PublicTest(epoch, PublicTestloader):
 
         if use_cuda:
             inputs, targets = inputs.cuda(), targets.cuda()
-        ##########
         with torch.no_grad():
             inputs, targets = Variable(inputs), Variable(targets)
-        ############
         outputs = net(inputs)
         outputs_avg = outputs.view(bs, ncrops, -1).mean(1)  # avg over crops
         loss = criterion(outputs_avg, targets)
         PublicTest_loss += loss.data
         total_Pubsamples += targets.size(0)
-        '''
+
         #utils.progress_bar(batch_idx, len(PublicTestloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                            % (PublicTest_loss / (batch_idx + 1), 100. * correct / total, correct, total))
-        '''
-    # Save checkpoint.
+    
     PublicTest_av_loss = PublicTest_loss / total_Pubsamples
     PublicTest_av_loss = PublicTest_av_loss.item()
     list_Pubtest_AveLoss.append(PublicTest_av_loss)
@@ -161,7 +133,6 @@ def PrivateTest(epoch, PrivateTestloader):
     net.eval()
     PrivateTest_loss = 0
     total_PriSamples = 0
-    # for batch_idx, (inputs, targets) in enumerate(PrivateTestloader):
     for batch in PrivateTestloader:
         inputs, targets = batch
         bs, ncrops, c, h, w = np.shape(inputs)
@@ -169,19 +140,17 @@ def PrivateTest(epoch, PrivateTestloader):
 
         if use_cuda:
             inputs, targets = inputs.cuda(), targets.cuda()
-        #############################
         with torch.no_grad():
             inputs, targets = Variable(inputs), Variable(targets)
-        ###############################
         outputs = net(inputs)
         outputs_avg = outputs.view(bs, ncrops, -1).mean(1)  # avg over crops
         loss = criterion(outputs_avg, targets)
         PrivateTest_loss += loss.data
         total_PriSamples += targets.size(0)
-        '''
+        
         utils.progress_bar(batch_idx, len(PublicTestloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                                    % (PrivateTest_loss / (batch_idx + 1), 100. * correct / total, correct, total))
-        '''
+        
     PrivateTest_av_loss = PrivateTest_loss / total_PriSamples
     PrivateTest_av_loss = PrivateTest_av_loss.item()
     list_Pritest_AveLoss.append(PrivateTest_av_loss)
@@ -207,7 +176,7 @@ if __name__ == '__main__':
     print("run from main1")
     parser = argparse.ArgumentParser(description='PyTorch VAD-Fer2013 Regression Training')
     parser.add_argument('--model', type=str, default='ResNet18RegressionTwoOutputs', help='CNN architecture')
-    parser.add_argument('--dataset', type=str, default='FER2013', help='CNN architecture')  ###############
+    parser.add_argument('--dataset', type=str, default='FER2013', help='CNN architecture')  
     parser.add_argument('--bs', default=128, type=int, help='learning rate')
     parser.add_argument('--lr', default=0.01, type=float, help='learning rate')
     parser.add_argument('--resume', '-r', action='store_true', default='false', help='resume from checkpoint')
@@ -229,7 +198,6 @@ if __name__ == '__main__':
     learning_rate_decay_rate = 0.9  # 0.9
 
     cut_size = 44
-    # total_epoch = 250
     total_epoch = 120
 
     path = os.path.join(opt.dataset + '_' + opt.model)
@@ -247,20 +215,14 @@ if __name__ == '__main__':
         custom_transform,
     ])
 
-    trainset = FER2013(split='Training', transform=transform_train)  ################
+    trainset = FER2013(split='Training', transform=transform_train)  
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=opt.bs, shuffle=True, num_workers=1)
     PublicTestset = FER2013(split='PublicTest', transform=transform_test)  ###############################
     PublicTestloader = torch.utils.data.DataLoader(PublicTestset, batch_size=opt.bs, shuffle=False, num_workers=1)
     PrivateTestset = FER2013(split='PrivateTest', transform=transform_test)  ########################
     PrivateTestloader = torch.utils.data.DataLoader(PrivateTestset, batch_size=opt.bs, shuffle=False, num_workers=1)
-    print("run from main2")
-    # print(opt.model)
-    # if opt.model == 'VGG19':
-    # net = VGG('VGG19')
-    # else:
     net = ResNet18RegressionTwoOutputs()
-    #################################################################
-    '''
+    
     if opt.resume:
         # Load checkpoint.
         print('==> Resuming from checkpoint..')
@@ -274,9 +236,9 @@ if __name__ == '__main__':
         best_PrivateTest_Averageloss_epoch = checkpoint['best_PrivateTest_Averageloss_epoch']
         start_epoch = checkpoint['best_PrivateTest_Averageloss_epoch'] + 1
     else:
-    '''
+        
     print('==> Building model..')
-    ####################################################################
+    
     if use_cuda:
         net.cuda()
     criterion = nn.MSELoss()
@@ -286,7 +248,6 @@ if __name__ == '__main__':
         train(epoch, trainloader)
         PublicTest(epoch, PublicTestloader)
         PrivateTest(epoch, PrivateTestloader)
-        # add by HY
         # save the process of loss for each epoch
         data = open("data.txt", 'a')
         print("best_PublicTest_Averageloss: %0.3f" % best_PublicTest_Averageloss, file=data)
@@ -294,7 +255,7 @@ if __name__ == '__main__':
         print("best_PrivateTest_Averageloss: %0.3f" % best_PrivateTest_Averageloss, file=data)
         print("best_PrivateTest_Averageloss_epoch: %d" % best_PrivateTest_Averageloss_epoch, file=data)
         data.close()
-        # add by HY
+        
     # print out the best model's parameters.
     print("best_PublicTest_Averageloss: %0.3f" % best_PublicTest_Averageloss)
     print("best_PublicTest_Averageloss_epoch: %d" % best_PublicTest_Averageloss_epoch)

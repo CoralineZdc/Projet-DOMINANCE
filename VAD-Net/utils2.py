@@ -16,16 +16,14 @@ from torch.utils.data import DataLoader
 from torch.utils.data import sampler
 from torch.nn import functional as F
 from pdb import set_trace as st
-#from dataset import CIFAR100Train, CIFAR100Test
 
 use_cuda = torch.cuda.is_available() # Initialize globally
 
 def conv_orth_dist(kernel, stride = 1):
     [o_c, i_c, w, h] = kernel.shape
     assert (w == h),"Do not support rectangular kernel"
-    #half = np.floor(w/2)
     assert stride<w,"Please use matrix orthgonality instead"
-    new_s = stride*(w-1) + w#np.int(2*(half+np.floor(half/stride))+1)
+    new_s = stride*(w-1) + w
     temp = torch.eye(new_s*new_s*i_c).reshape((new_s*new_s*i_c, i_c, new_s,new_s)).cuda()
     out = (F.conv2d(temp, kernel, stride=stride)).reshape((new_s*new_s*i_c, -1))
     Vmat = out[np.floor(new_s**2/2).astype(int)::new_s**2, :]
@@ -235,14 +233,12 @@ def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=Tru
     """
 
     transform_train = transforms.Compose([
-        #transforms.ToPILImage(),
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(15),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
-    #cifar100_training = CIFAR100Train(path, transform=transform_train)
     
     cifar100_training = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=transform_train)
     if perc < 1.0:
@@ -266,14 +262,12 @@ def get_training_dataloaderIMAGENET(mean, std, batch_size=16, num_workers=2, shu
     """
 
     transform_train = transforms.Compose([
-        #transforms.ToPILImage(),
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(15),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
-    #cifar100_training = CIFAR100Train(path, transform=transform_train)
     
     cifar100_training = torchvision.datasets.ImageNet(root='/home/peterwg/dataset/ILSVRC2012', split='train', download=False, transform=transform_train)
     st()
@@ -301,7 +295,6 @@ def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
-    #cifar100_test = CIFAR100Test(path, transform=transform_test)
     cifar100_test = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=transform_test)
     cifar100_test_loader = DataLoader(
         cifar100_test, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)

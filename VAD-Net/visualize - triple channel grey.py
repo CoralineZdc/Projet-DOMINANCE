@@ -3,7 +3,6 @@ visualize results for test image
 """
 
 import numpy as np
-# import matplotlib.pyplot as plt
 from PIL import Image
 import torch
 import torch.nn as nn
@@ -12,9 +11,6 @@ import os
 from torch.autograd import Variable
 
 import transforms as transforms
-# from skimage import io
-# from skimage.transform import resize
-# from models import *
 from models.resnet_reg2 import ResNet18RegressionTwoOutputs
 
 cut_size = 44
@@ -27,11 +23,8 @@ transform_test = transforms.Compose([
 
 img = np.array(Image.open("images/2_6=Neutral.jpg"))  # Replace with the actual path to your image file
 img = img.reshape(48, 48, 3)
-# img = np.expand_dims(img, axis=2)
 img = img.astype(np.uint8)
 
-# img = img[:, :, np.newaxis]
-# img = np.concatenate((img, img, img), axis=2)
 img = img.astype(np.uint8)
 img = Image.fromarray(img)
 inputs = transform_test(img)

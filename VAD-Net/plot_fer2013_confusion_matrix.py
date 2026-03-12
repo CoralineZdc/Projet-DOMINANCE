@@ -78,11 +78,6 @@ if opt.model == 'VGG19':
 elif opt.model  == 'Resnet18':
     net = ResNet18()
 
-'''#add by HY
-net=ResNet18()
-print(net)
-#add by HY'''
-
 path = os.path.join(opt.dataset + '_' + opt.model)
 checkpoint = torch.load(os.path.join(path, opt.split + '_model.t7'))
 
@@ -90,10 +85,7 @@ net.load_state_dict(checkpoint['net'])
 net.cuda()
 net.eval()
 Testset = FER2013(split = opt.split, transform=transform_test)
-#modified by HY
-#Testloader = torch.utils.data.DataLoader(Testset, batch_size=128, shuffle=False, num_workers=1)
 Testloader = torch.utils.data.DataLoader(Testset, batch_size=8, shuffle=False, num_workers=1)
-#modified by HY
 correct = 0
 total = 0
 all_target = []

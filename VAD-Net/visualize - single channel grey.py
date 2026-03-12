@@ -3,7 +3,6 @@ visualize results for test image
 """
 
 import numpy as np
-# import matplotlib.pyplot as plt
 from PIL import Image
 import torch
 import torch.nn as nn
@@ -12,9 +11,6 @@ import os
 from torch.autograd import Variable
 
 import transforms as transforms
-# from skimage import io
-# from skimage.transform import resize
-# from models import *
 from models.resnet_reg2 import ResNet18RegressionTwoOutputs
 
 cut_size = 44

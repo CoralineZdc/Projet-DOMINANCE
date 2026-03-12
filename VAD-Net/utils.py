@@ -13,10 +13,7 @@ import torch.nn as nn
 import torch.nn.init as init
 from torch.autograd import Function
 
-#modified by HY
-#_, term_width = os.popen('stty size', 'r').read().split()
 term_width = 80
-#modified by HY
 term_width = int(term_width)
 
 TOTAL_BAR_LENGTH = 30.
@@ -70,6 +67,5 @@ def set_lr(optimizer, lr):
 
 def clip_gradient(optimizer, grad_clip):
     for group in optimizer.param_groups:
-        #print(group['params'])
         for param in group['params']:
             param.grad.data.clamp_(-grad_clip, grad_clip)

@@ -137,7 +137,6 @@ class FER2013(data.Dataset):
             img, target = self.PublicTest_data[index], self.PublicTest_labels[index]
         else:
             img, target = self.PrivateTest_data[index], self.PrivateTest_labels[index]
-        # to return a PIL Image
         return img, target
 
     def __len__(self):
