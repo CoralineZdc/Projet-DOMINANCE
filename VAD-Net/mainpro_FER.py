@@ -222,7 +222,7 @@ if __name__ == '__main__':
     PrivateTestset = FER2013(split='PrivateTest', transform=transform_test)  ########################
     PrivateTestloader = torch.utils.data.DataLoader(PrivateTestset, batch_size=opt.bs, shuffle=False, num_workers=1)
     net = ResNet18RegressionTwoOutputs()
-    
+    """
     if opt.resume:
         # Load checkpoint.
         print('==> Resuming from checkpoint..')
@@ -236,8 +236,8 @@ if __name__ == '__main__':
         best_PrivateTest_Averageloss_epoch = checkpoint['best_PrivateTest_Averageloss_epoch']
         start_epoch = checkpoint['best_PrivateTest_Averageloss_epoch'] + 1
     else:
-        
-        print('==> Building model..')
+       """ 
+    print('==> Building model..')
     
     if use_cuda:
         net.cuda()
